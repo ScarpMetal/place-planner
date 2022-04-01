@@ -4,8 +4,10 @@ import { Color } from "../types";
 import { Component, forwardRef, LegacyRef } from "react";
 import colors from "../colors";
 
-const PIXEL_SIZE = 10;
 const pixels: { [key: string]: Color } = {};
+const MAX_PIXEL_SIZE = 15;
+let pixelSize = MAX_PIXEL_SIZE;
+let hoverPixelKey: string | null = null;
 
 function Canvas(
   {
@@ -21,15 +23,26 @@ function Canvas(
   },
   ref: LegacyRef<Component<SketchProps, any, any>>
 ) {
+  function updatePixelSize(p5: p5Types) {
+    const possiblePixelSize1 = p5.floor(p5.windowWidth / pixelWidth);
+    const possiblePixelSize2 = p5.floor((p5.windowHeight - 160) / pixelHeight);
+    pixelSize = Math.min(
+      possiblePixelSize1,
+      possiblePixelSize2,
+      MAX_PIXEL_SIZE
+    );
+  }
+
   const setup = (p5: p5Types, canvasParentRef: Element) => {
-    p5.createCanvas(pixelWidth * PIXEL_SIZE, pixelHeight * PIXEL_SIZE).parent(
+    updatePixelSize(p5);
+    p5.createCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize).parent(
       canvasParentRef
     );
   };
 
   function screenCoordsToKey(screenX: number, screenY: number) {
-    const pixelX = Math.floor(screenX / PIXEL_SIZE);
-    const pixelY = Math.floor(screenY / PIXEL_SIZE);
+    const pixelX = Math.floor(screenX / pixelSize);
+    const pixelY = Math.floor(screenY / pixelSize);
     return `${pixelX},${pixelY}`;
   }
 
@@ -37,8 +50,8 @@ function Canvas(
     const [xStr, yStr] = key.split(",");
     const x = parseInt(xStr);
     const y = parseInt(yStr);
-    const screenX = x * PIXEL_SIZE;
-    const screenY = y * PIXEL_SIZE;
+    const screenX = x * pixelSize;
+    const screenY = y * pixelSize;
     return [screenX, screenY];
   }
 
@@ -50,7 +63,13 @@ function Canvas(
       const { hex } = pixels[key];
       const [x, y] = keyToScreenCoords(key);
       p5.fill(hex);
-      p5.rect(x, y, PIXEL_SIZE, PIXEL_SIZE);
+      p5.rect(x, y, pixelSize, pixelSize);
+    }
+
+    if (hoverPixelKey) {
+      const [x, y] = keyToScreenCoords(hoverPixelKey);
+      p5.fill(color.hex);
+      p5.rect(x, y, pixelSize, pixelSize);
     }
   };
 
@@ -59,12 +78,21 @@ function Canvas(
     pixels[key] = { ...color };
   }
 
+  const mouseMoved = (p5: p5Types) => {
+    hoverPixelKey = screenCoordsToKey(p5.mouseX, p5.mouseY);
+  };
+
   const mousePressed = (p5: p5Types) => {
     placePixel(p5.mouseX, p5.mouseY);
   };
 
   const mouseDragged = (p5: p5Types) => {
-    console.log("dragged");
+    placePixel(p5.mouseX, p5.mouseY);
+  };
+
+  const windowResized = (p5: p5Types) => {
+    updatePixelSize(p5);
+    p5.resizeCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize);
   };
 
   return (
@@ -72,8 +100,10 @@ function Canvas(
       ref={ref}
       setup={setup}
       draw={draw}
+      mouseMoved={mouseMoved}
       mousePressed={mousePressed}
       mouseDragged={mouseDragged}
+      windowResized={windowResized}
     />
   );
 }

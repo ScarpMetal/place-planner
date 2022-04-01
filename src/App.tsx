@@ -99,6 +99,7 @@ function App() {
           {colors.map((color, index) => {
             return (
               <button
+                key={index}
                 type="button"
                 data-selected={index === colorIndex}
                 data-white={color.name === "white"}
