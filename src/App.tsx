@@ -1,24 +1,113 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {
+  Component,
+  LegacyRef,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { SketchProps } from "react-p5/@types";
+import "./App.css";
+import colors from "./colors";
+import Canvas from "./components/Canvas";
 
 function App() {
+  const canvasRef = useRef<Component<SketchProps, any, any>>(null);
+  const errorTimeout = useRef<NodeJS.Timeout | null>(null);
+  const mounted = useRef<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [colorIndex, setColorIndex] = useState(0);
+  const color = useMemo(() => colors[colorIndex], [colorIndex]);
+
+  // detect unmount of component
+  useLayoutEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  // hide error after 2.5 seconds
+  useLayoutEffect(() => {
+    if (errorTimeout.current) {
+      clearTimeout(errorTimeout.current);
+    }
+    errorTimeout.current = setTimeout(() => {
+      if (mounted.current) {
+        // setError(null);
+      }
+    }, 2500);
+  }, [error]);
+
+  const download = () => {
+    if (!canvasRef.current) {
+      return null;
+    }
+  };
+
+  const handleDownloadToComputer = () => {
+    const image = download();
+    if (!image) {
+      setError("Could not download image, try again.");
+    }
+  };
+
+  const handleShareToReddit = () => {
+    const image = download();
+    if (!image) {
+      setError("Could not share image, try again.");
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {error && (
+        <div className="error" key={error}>
+          {error}
+        </div>
+      )}
+      <div className="canvas-container">
+        <div className="canvas-content-container">
+          <div className="options">
+            <button
+              type="button"
+              className="reddit-share"
+              onClick={handleShareToReddit}
+            >
+              Reddit Share
+            </button>
+            <button
+              type="button"
+              className="download"
+              onClick={handleDownloadToComputer}
+            >
+              Download Image
+            </button>
+          </div>
+          <Canvas
+            ref={canvasRef}
+            color={color}
+            pixelWidth={100}
+            pixelHeight={100}
+          />
+        </div>
+      </div>
+      <div className="colors-container">
+        <div className="colors">
+          {colors.map((color, index) => {
+            return (
+              <button
+                type="button"
+                data-selected={index === colorIndex}
+                data-white={color.name === "white"}
+                style={{ backgroundColor: color.hex }}
+                onClick={() => setColorIndex(index)}
+              >
+                <div className="tooltip">{color.name}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

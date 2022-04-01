@@ -1,38 +1,161 @@
 .App {
+  position: relative;
+  width: 100%;
+  height: 100%;
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr min-content;
 }
 
-.App-link {
-  color: #61dafb;
+@-webkit-keyframes slide {
+  100% {
+    top: 0;
+  }
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@keyframes slide {
+  100% {
+    top: 0;
   }
-  to {
-    transform: rotate(360deg);
+}
+
+.error {
+  position: absolute;
+  top: -50px;
+  height: 50px;
+  width: 100%;
+  line-height: 50px;
+  color: red;
+  font-weight: bold;
+  -webkit-animation: slide 0.5s forwards;
+  -webkit-animation-delay: 2s;
+  animation: slide 0.5s forwards;
+}
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas-content-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.colors-container {
+  box-sizing: border-box;
+  padding: 6px 24px 64px 24px;
+  bottom: 0;
+  width: 100%;
+}
+
+.colors {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 4px;
+}
+
+@media screen and (max-width: 900px) {
+  .colors {
+    grid-template-columns: repeat(8, 1fr);
   }
+}
+
+.colors button {
+  height: 28px;
+  flex: 1;
+  border: none;
+  position: relative;
+  border: solid transparent 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.colors button[data-selected="true"] {
+  box-shadow: rgb(0 0 0 / 50%) 0px 4px 10px;
+  border: solid white 2px;
+}
+
+.colors button[data-white="true"] {
+  border: 1px solid rgb(233, 235, 237);
+}
+
+.colors button:hover .tooltip {
+  display: block;
+}
+
+.tooltip {
+  display: none;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 58px;
+  padding: 2px 4px;
+  background-color: white;
+  position: absolute;
+  top: calc(-100% - 5px);
+  box-shadow: rgb(0 0 0 / 25%) 0px 4px 10px;
+  white-space: nowrap;
+}
+
+.tooltip::after {
+  content: "";
+  width: 0px;
+  height: 0px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid rgb(255, 255, 255);
+  position: absolute;
+  top: calc(100% + -1px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.options {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 10px;
+}
+
+.options button {
+  height: 27px;
+  opacity: 0.7;
+  cursor: pointer;
+  color: transparent;
+  border: none;
+  background-color: transparent;
+  display: block;
+}
+
+button.reddit-share {
+  /* 512 × 162 */
+  background-image: url("./assets/reddit-share-button.png");
+  background-size: 85.33px 27px;
+  width: 85.33px;
+}
+
+button.download:hover,
+button.reddit-share:hover {
+  opacity: 1;
+}
+
+button.download {
+  background-image: url("./assets/download-button.png");
+  background-size: 27.43px 27px;
+  width: 27.43px;
 }
