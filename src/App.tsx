@@ -1,11 +1,4 @@
-import {
-  Component,
-  LegacyRef,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Component, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { SketchProps } from "react-p5/@types";
 import "./App.css";
 import colors from "./colors";
@@ -61,12 +54,12 @@ function App() {
     link.click();
   };
 
-  const handleShareToReddit = () => {
-    const dataURL = getCanvasDataURL();
-    if (!dataURL) {
-      setError("Could not share image, try again.");
-    }
-  };
+  // const handleShareToReddit = () => {
+  //   const dataURL = getCanvasDataURL();
+  //   if (!dataURL) {
+  //     setError("Could not share image, try again.");
+  //   }
+  // };
 
   return (
     <div className="App">
