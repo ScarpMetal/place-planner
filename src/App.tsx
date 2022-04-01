@@ -33,27 +33,37 @@ function App() {
     }
     errorTimeout.current = setTimeout(() => {
       if (mounted.current) {
-        // setError(null);
+        setError(null);
       }
-    }, 2500);
+    }, 5000);
   }, [error]);
 
-  const download = () => {
-    if (!canvasRef.current) {
+  const getCanvasDataURL = () => {
+    // @ts-ignore p5 sketch did not type this
+    if (!canvasRef.current?.sketch?.canvas?.toDataURL) {
       return null;
     }
+
+    // @ts-ignore p5 sketch did not type this
+    return canvasRef.current.sketch.canvas.toDataURL();
   };
 
   const handleDownloadToComputer = () => {
-    const image = download();
-    if (!image) {
+    const dataURL = getCanvasDataURL();
+    if (!dataURL) {
       setError("Could not download image, try again.");
     }
+
+    const dateStr = new Date().toISOString();
+    const link = document.createElement("a");
+    link.download = `PlacePlannerDrawing@${dateStr}.png`;
+    link.href = dataURL;
+    link.click();
   };
 
   const handleShareToReddit = () => {
-    const image = download();
-    if (!image) {
+    const dataURL = getCanvasDataURL();
+    if (!dataURL) {
       setError("Could not share image, try again.");
     }
   };
@@ -68,13 +78,13 @@ function App() {
       <div className="canvas-container">
         <div className="canvas-content-container">
           <div className="options">
-            <button
+            {/* <button
               type="button"
               className="reddit-share"
               onClick={handleShareToReddit}
             >
               Reddit Share
-            </button>
+            </button> */}
             <button
               type="button"
               className="download"
