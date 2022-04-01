@@ -3,6 +3,8 @@ import p5Types from "p5";
 import { Color } from "../types";
 import { Component, forwardRef, LegacyRef } from "react";
 import colors from "../colors";
+import { analytics } from "../firebase";
+import { logEvent } from "firebase/analytics";
 
 const pixels: { [key: string]: Color } = {};
 const MAX_PIXEL_SIZE = 15;
@@ -76,6 +78,7 @@ function Canvas(
   function placePixel(screenX: number, screenY: number) {
     const key = screenCoordsToKey(screenX, screenY);
     pixels[key] = { ...color };
+    logEvent(analytics, "placed_pixel", { key, color });
   }
 
   const mouseMoved = (p5: p5Types) => {

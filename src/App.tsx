@@ -1,8 +1,10 @@
+import { logEvent } from "firebase/analytics";
 import { Component, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { SketchProps } from "react-p5/@types";
 import "./App.css";
 import colors from "./colors";
 import Canvas from "./components/Canvas";
+import { analytics } from "./firebase";
 
 function App() {
   const canvasRef = useRef<Component<SketchProps, any, any>>(null);
@@ -45,6 +47,8 @@ function App() {
     const dataURL = getCanvasDataURL();
     if (!dataURL) {
       setError("Could not download image, try again.");
+      logEvent(analytics, "error_downloading_image_to_computer");
+      return;
     }
 
     const dateStr = new Date().toISOString();
@@ -52,6 +56,8 @@ function App() {
     link.download = `PlacePlannerDrawing@${dateStr}.png`;
     link.href = dataURL;
     link.click();
+
+    logEvent(analytics, "downloaded_image_to_computer", { dataURL });
   };
 
   // const handleShareToReddit = () => {
@@ -83,6 +89,9 @@ function App() {
               target="_blank"
               rel="noreferrer"
               href="https://www.reddit.com/user/ScarpMetal/comments/tu478n/rplace_planner_feedback_thread/"
+              onClick={() => {
+                logEvent(analytics, "feedback_link_clicked");
+              }}
             >
               Feedback
             </a>
@@ -112,7 +121,10 @@ function App() {
                 data-selected={index === colorIndex}
                 data-white={color.name === "white"}
                 style={{ backgroundColor: color.hex }}
-                onClick={() => setColorIndex(index)}
+                onClick={() => {
+                  setColorIndex(index);
+                  logEvent(analytics, "selected_color", color);
+                }}
               >
                 <div className="tooltip">{color.name}</div>
               </button>
