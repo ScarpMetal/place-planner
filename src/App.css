@@ -149,6 +149,13 @@
   gap: 10px;
 }
 
+.feedback {
+  display: block;
+  margin-right: auto;
+  color: gray;
+  font-size: 14px;
+}
+
 .options button {
   height: 27px;
   opacity: 0.7;

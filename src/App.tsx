@@ -78,6 +78,14 @@ function App() {
             >
               Reddit Share
             </button> */}
+            <a
+              className="feedback"
+              target="_blank"
+              rel="noreferrer"
+              href="https://www.reddit.com/user/ScarpMetal/comments/tu478n/rplace_planner_feedback_thread/"
+            >
+              Feedback
+            </a>
             <button
               type="button"
               className="download"
