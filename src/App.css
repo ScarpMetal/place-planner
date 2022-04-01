@@ -12,15 +12,33 @@
   grid-template-rows: 1fr min-content;
 }
 
-@-webkit-keyframes slide {
-  100% {
+@-webkit-keyframes slideInOut {
+  0% {
+    top: -50px;
+  }
+  10% {
     top: 0;
+  }
+  90% {
+    top: 0;
+  }
+  100% {
+    top: -50px;
   }
 }
 
-@keyframes slide {
-  100% {
+@keyframes slideInOut {
+  0% {
+    top: -50px;
+  }
+  10% {
     top: 0;
+  }
+  90% {
+    top: 0;
+  }
+  100% {
+    top: -50px;
   }
 }
 
@@ -32,9 +50,8 @@
   line-height: 50px;
   color: red;
   font-weight: bold;
-  -webkit-animation: slide 0.5s forwards;
-  -webkit-animation-delay: 2s;
-  animation: slide 0.5s forwards;
+  -webkit-animation: slideInOut 5s forwards;
+  animation: slideInOut 5s forwards;
 }
 
 .canvas-container {
