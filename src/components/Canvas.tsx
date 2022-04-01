@@ -78,7 +78,7 @@ function Canvas(
   function placePixel(screenX: number, screenY: number) {
     const key = screenCoordsToKey(screenX, screenY);
     pixels[key] = { ...color };
-    logEvent(analytics, "placed_pixel", { key, color });
+    logEvent(analytics, "placed_pixel", { key, ...color });
   }
 
   const mouseMoved = (p5: p5Types) => {
