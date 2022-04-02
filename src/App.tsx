@@ -7,6 +7,15 @@ import Canvas from "./components/Canvas";
 import { analytics } from "./firebase";
 
 function getInitialPixelDimensions() {
+  const localDimensions = JSON.parse(
+    localStorage.getItem("pixelDimensions") || "{}"
+  ) as { width?: number; height?: number };
+  if (
+    typeof localDimensions.width === "number" &&
+    typeof localDimensions.height === "number"
+  ) {
+    return localDimensions;
+  }
   if (window.innerWidth < 600) {
     return { width: 15, height: 15 };
   }
@@ -29,6 +38,12 @@ function App() {
   }>(getInitialPixelDimensions);
   const color = useMemo(() => colors[colorIndex], [colorIndex]);
 
+  // save dimensions to localstorage
+  useLayoutEffect(() => {
+    localStorage.setItem("pixelDimensions", JSON.stringify(pixelDimensions));
+  }, [pixelDimensions]);
+
+  // disable touchmove on mobile so screen doesnt move when dragging
   useLayoutEffect(() => {
     function preventBehavior(e: TouchEvent) {
       e.preventDefault();
@@ -86,7 +101,7 @@ function App() {
     link.click();
 
     logEvent(analytics, "downloaded_image_to_computer", {
-      pixels: localStorage.getItem("pixels"),
+      pixelDimensions: localStorage.getItem("pixelDimensions"),
     });
   };
 
@@ -114,17 +129,6 @@ function App() {
             >
               Reddit Share
             </button> */}
-            <a
-              className="feedback"
-              target="_blank"
-              rel="noreferrer"
-              href="https://www.reddit.com/user/ScarpMetal/comments/tu478n/rplace_planner_feedback_thread/"
-              onClick={() => {
-                logEvent(analytics, "feedback_link_clicked");
-              }}
-            >
-              Feedback
-            </a>
 
             <div className="dimensions">
               <input
@@ -208,6 +212,17 @@ function App() {
             );
           })}
         </div>
+        <a
+          className="feedback"
+          target="_blank"
+          rel="noreferrer"
+          href="https://www.reddit.com/user/ScarpMetal/comments/tu478n/rplace_planner_feedback_thread/"
+          onClick={() => {
+            logEvent(analytics, "feedback_link_clicked");
+          }}
+        >
+          Feedback
+        </a>
       </div>
     </div>
   );

@@ -127,7 +127,11 @@ function Canvas(
     const key = screenCoordsToKey(screenX, screenY);
     pixels[key] = { ...color };
     localStorage.setItem("pixels", JSON.stringify(pixels));
-    logEvent(analytics, "placed_pixel", { key, ...color });
+    logEvent(analytics, "placed_pixel", {
+      position: key,
+      colorName: color.name,
+      colorHex: color.hex,
+    });
   }
 
   const mouseMoved = (p5: p5Types) => {

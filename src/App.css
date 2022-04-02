@@ -74,10 +74,22 @@ canvas {
 }
 
 .colors-container {
+  position: relative;
   box-sizing: border-box;
   padding: 6px 24px 64px 24px;
   bottom: 0;
   width: 100%;
+}
+
+.feedback {
+  position: absolute;
+  display: block;
+  margin-right: auto;
+  color: gray;
+  font-size: 14px;
+  transform: translate(-50%, 50%);
+  left: 50%;
+  bottom: 32px;
 }
 
 .colors {
@@ -153,13 +165,6 @@ canvas {
   gap: 16px;
 }
 
-.feedback {
-  display: block;
-  margin-right: auto;
-  color: gray;
-  font-size: 14px;
-}
-
 .options .dimensions input,
 .options button {
   height: 27px;
@@ -188,6 +193,7 @@ canvas {
 .options .dimensions input {
   color: black;
   height: 27px;
+  line-height: 27px;
   width: 60px;
   font-size: 16px;
   text-align: center;
