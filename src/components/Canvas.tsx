@@ -1,7 +1,13 @@
 import Sketch, { SketchProps } from "react-p5";
 import p5Types from "p5";
 import { Color } from "../types";
-import { Component, forwardRef, Ref, useLayoutEffect } from "react";
+import {
+  Component,
+  forwardRef,
+  Ref,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import colors from "../colors";
 import { analytics } from "../firebase";
 import { logEvent } from "firebase/analytics";
@@ -13,14 +19,17 @@ let pixels: { [key: string]: Color } = JSON.parse(
 let pixelSize = MAX_PIXEL_SIZE;
 let hoverPixelKey: string | null = null;
 
-function updatePixelSize(p5: p5Types, pixelWidth: number, pixelHeight: number) {
-  const possiblePixelSize1 = p5.floor((p5.windowWidth - 20) / pixelWidth);
-  const possiblePixelSize2 = p5.floor((p5.windowHeight - 170) / pixelHeight);
+function updatePixelSize(pixelWidth: number, pixelHeight: number) {
+  const possiblePixelSize1 = Math.floor((window.innerWidth - 20) / pixelWidth);
+  const possiblePixelSize2 = Math.floor(
+    (window.innerHeight - 170) / pixelHeight
+  );
   pixelSize = Math.min(possiblePixelSize1, possiblePixelSize2, MAX_PIXEL_SIZE);
 }
 
 function Canvas(
   {
+    lastClear,
     paused,
     background = colors[12],
     color,
@@ -28,6 +37,7 @@ function Canvas(
     pixelWidth,
     pixelHeight,
   }: {
+    lastClear: string;
     paused: boolean;
     background?: Color;
     color: Color;
@@ -43,24 +53,30 @@ function Canvas(
       [key: string]: Color;
     };
     hoverPixelKey = null;
-  }, []);
+  }, [lastClear]);
 
   // set canvas size whenever pixelWidth and pixelHeight change
   useLayoutEffect(() => {
     // @ts-ignore
     const p5: p5Types | undefined = ref.current?.sketch;
-    if (p5) {
-      updatePixelSize(p5, pixelWidth, pixelHeight);
+    // @ts-ignore using this hack to see if canvas is already setup
+    if (p5 && p5._setupDone) {
+      console.log("resize");
+      updatePixelSize(pixelWidth, pixelHeight);
       p5.resizeCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize);
     }
   }, [pixelHeight, pixelWidth, ref]);
 
-  const setup = (p5: p5Types, canvasParentRef: Element) => {
-    updatePixelSize(p5, pixelWidth, pixelHeight);
-    p5.createCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize).parent(
-      canvasParentRef
-    );
-  };
+  const setup = useCallback(
+    (p5: p5Types, canvasParentRef: Element) => {
+      console.log("setup");
+      updatePixelSize(pixelWidth, pixelHeight);
+      p5.createCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize).parent(
+        canvasParentRef
+      );
+    },
+    [pixelHeight, pixelWidth]
+  );
 
   function screenCoordsToKey(screenX: number, screenY: number): string | null {
     const pixelX = Math.floor(screenX / pixelSize);
@@ -142,7 +158,7 @@ function Canvas(
     }
   };
 
-  function placePixel(p5: p5Types, screenX: number, screenY: number) {
+  function placePixel(screenX: number, screenY: number) {
     if (paused) return;
 
     const pixelKey = screenCoordsToKey(screenX, screenY);
@@ -164,28 +180,32 @@ function Canvas(
   };
 
   const mousePressed = (p5: p5Types) => {
-    placePixel(p5, p5.mouseX, p5.mouseY);
+    placePixel(p5.mouseX, p5.mouseY);
+    console.log("mousePressed", screenCoordsToKey(p5.mouseX, p5.mouseY));
   };
 
   const mouseDragged = (p5: p5Types) => {
-    placePixel(p5, p5.mouseX, p5.mouseY);
+    placePixel(p5.mouseX, p5.mouseY);
+    console.log("mouseDragged", screenCoordsToKey(p5.mouseX, p5.mouseY));
   };
 
   const windowResized = (p5: p5Types) => {
-    updatePixelSize(p5, pixelWidth, pixelHeight);
+    updatePixelSize(pixelWidth, pixelHeight);
     p5.resizeCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize);
   };
 
   return (
-    <Sketch
-      ref={ref}
-      setup={setup}
-      draw={draw}
-      mouseMoved={mouseMoved}
-      mousePressed={mousePressed}
-      mouseDragged={mouseDragged}
-      windowResized={windowResized}
-    />
+    <>
+      <Sketch
+        ref={ref}
+        setup={setup}
+        draw={draw}
+        mouseMoved={mouseMoved}
+        mousePressed={mousePressed}
+        mouseDragged={mouseDragged}
+        windowResized={windowResized}
+      />
+    </>
   );
 }
 

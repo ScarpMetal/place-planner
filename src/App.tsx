@@ -75,8 +75,8 @@ function App() {
     errorTimeout.current = setTimeout(() => {
       if (mounted.current) {
         setError(null);
-        errorTimeout.current = null;
       }
+      errorTimeout.current = null;
     }, 5000);
   }, [error]);
 
@@ -90,7 +90,7 @@ function App() {
       errorTimeout.current = null;
     }
     setLastClear(new Date().toISOString());
-    logEvent(analytics, "cleared-canvas");
+    logEvent(analytics, "cleared_canvas");
   };
 
   const initiateClearCanvas = () => {
@@ -102,7 +102,6 @@ function App() {
       }
       document.removeEventListener("mouseup", handleTouchUp);
     };
-
     document.addEventListener("mouseup", handleTouchUp);
 
     // Show a confirm alert
@@ -231,7 +230,7 @@ function App() {
             </button> */}
           </div>
           <Canvas
-            key={lastClear}
+            lastClear={lastClear}
             ref={canvasRef}
             paused={modalOpen}
             showGrid={showGrid}
