@@ -106,8 +106,8 @@ function App() {
           <Canvas
             ref={canvasRef}
             color={color}
-            pixelWidth={50}
-            pixelHeight={50}
+            pixelWidth={25}
+            pixelHeight={25}
           />
         </div>
       </div>

@@ -7,7 +7,7 @@ import { analytics } from "../firebase";
 import { logEvent } from "firebase/analytics";
 
 const pixels: { [key: string]: Color } = {};
-const MAX_PIXEL_SIZE = 15;
+const MAX_PIXEL_SIZE = 30;
 let pixelSize = MAX_PIXEL_SIZE;
 let hoverPixelKey: string | null = null;
 
@@ -27,7 +27,7 @@ function Canvas(
 ) {
   function updatePixelSize(p5: p5Types) {
     const possiblePixelSize1 = p5.floor(p5.windowWidth / pixelWidth);
-    const possiblePixelSize2 = p5.floor((p5.windowHeight - 160) / pixelHeight);
+    const possiblePixelSize2 = p5.floor((p5.windowHeight - 170) / pixelHeight);
     pixelSize = Math.min(
       possiblePixelSize1,
       possiblePixelSize2,
@@ -57,6 +57,23 @@ function Canvas(
     return [screenX, screenY];
   }
 
+  function drawNub(p5: p5Types, x: number, y: number, rot = 0) {
+    const nubLen = p5.floor(pixelSize * 0.25);
+    const nubWidth = p5.floor(pixelHeight * 0.1);
+
+    p5.push();
+    p5.translate(x, y);
+    p5.rotate(rot);
+    p5.noStroke();
+    p5.fill(255, 143);
+    p5.rect(-nubWidth, -nubWidth, nubLen + nubWidth, nubWidth);
+    p5.rect(-nubWidth, 0, nubWidth, nubLen);
+    p5.fill(0, 143);
+    p5.rect(0, 0, nubLen, nubWidth);
+    p5.rect(0, nubWidth, nubWidth, nubLen - nubWidth);
+    p5.pop();
+  }
+
   const draw = (p5: p5Types) => {
     p5.background(background.hex);
 
@@ -65,17 +82,22 @@ function Canvas(
       const { hex } = pixels[key];
       const [x, y] = keyToScreenCoords(key);
       p5.fill(hex);
+      p5.noStroke();
       p5.rect(x, y, pixelSize, pixelSize);
     }
 
     if (hoverPixelKey) {
       const [x, y] = keyToScreenCoords(hoverPixelKey);
-      p5.fill(color.hex);
-      p5.rect(x, y, pixelSize, pixelSize);
+
+      drawNub(p5, x, y, 0);
+      drawNub(p5, x + pixelSize, y, p5.HALF_PI);
+      drawNub(p5, x + pixelSize, y + pixelSize, p5.PI);
+      drawNub(p5, x, y + pixelSize, p5.HALF_PI * 3);
     }
   };
 
-  function placePixel(screenX: number, screenY: number) {
+  function placePixel(p5: p5Types, screenX: number, screenY: number) {
+    hoverPixelKey = screenCoordsToKey(p5.mouseX, p5.mouseY);
     const key = screenCoordsToKey(screenX, screenY);
     pixels[key] = { ...color };
     logEvent(analytics, "placed_pixel", { key, ...color });
@@ -86,11 +108,11 @@ function Canvas(
   };
 
   const mousePressed = (p5: p5Types) => {
-    placePixel(p5.mouseX, p5.mouseY);
+    placePixel(p5, p5.mouseX, p5.mouseY);
   };
 
   const mouseDragged = (p5: p5Types) => {
-    placePixel(p5.mouseX, p5.mouseY);
+    placePixel(p5, p5.mouseX, p5.mouseY);
   };
 
   const windowResized = (p5: p5Types) => {
