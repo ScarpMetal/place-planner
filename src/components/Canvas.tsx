@@ -6,7 +6,9 @@ import colors from "../colors";
 import { analytics } from "../firebase";
 import { logEvent } from "firebase/analytics";
 
-const pixels: { [key: string]: Color } = {};
+const pixels: { [key: string]: Color } = JSON.parse(
+  localStorage.getItem("pixels") || "{}"
+);
 const MAX_PIXEL_SIZE = 30;
 let pixelSize = MAX_PIXEL_SIZE;
 let hoverPixelKey: string | null = null;
@@ -15,18 +17,20 @@ function Canvas(
   {
     background = colors[12],
     color,
+    showGrid,
     pixelWidth,
     pixelHeight,
   }: {
     background?: Color;
     color: Color;
+    showGrid: boolean;
     pixelWidth: number;
     pixelHeight: number;
   },
   ref: LegacyRef<Component<SketchProps, any, any>>
 ) {
   function updatePixelSize(p5: p5Types) {
-    const possiblePixelSize1 = p5.floor(p5.windowWidth / pixelWidth);
+    const possiblePixelSize1 = p5.floor((p5.windowWidth - 20) / pixelWidth);
     const possiblePixelSize2 = p5.floor((p5.windowHeight - 170) / pixelHeight);
     pixelSize = Math.min(
       possiblePixelSize1,
@@ -94,12 +98,30 @@ function Canvas(
       drawNub(p5, x + pixelSize, y + pixelSize, p5.PI);
       drawNub(p5, x, y + pixelSize, p5.HALF_PI * 3);
     }
+
+    if (showGrid) {
+      p5.noFill();
+      p5.strokeWeight(1);
+      for (let r = 0; r <= pixelHeight; r++) {
+        p5.stroke(255, 60);
+        p5.line(0, r * pixelSize, p5.width, r * pixelSize);
+        p5.stroke(0, 60);
+        p5.line(0, r * pixelSize, p5.width, r * pixelSize);
+      }
+      for (let c = 0; c <= pixelWidth; c++) {
+        p5.stroke(255, 60);
+        p5.line(c * pixelSize, 0, c * pixelSize, p5.height);
+        p5.stroke(0, 60);
+        p5.line(c * pixelSize, 0, c * pixelSize, p5.height);
+      }
+    }
   };
 
   function placePixel(p5: p5Types, screenX: number, screenY: number) {
     hoverPixelKey = screenCoordsToKey(p5.mouseX, p5.mouseY);
     const key = screenCoordsToKey(screenX, screenY);
     pixels[key] = { ...color };
+    localStorage.setItem("pixels", JSON.stringify(pixels));
     logEvent(analytics, "placed_pixel", { key, ...color });
   }
 

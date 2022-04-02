@@ -158,12 +158,27 @@
 
 .options button {
   height: 27px;
-  opacity: 0.7;
+  opacity: 0.3;
   cursor: pointer;
   color: transparent;
   border: none;
   background-color: transparent;
   display: block;
+  overflow: hidden;
+}
+
+.options button:hover {
+  opacity: 1;
+}
+
+button.show-grid {
+  /* 512 × 496 */
+  background-image: url("./assets/show-grid-button.png");
+  background-size: 27.87px 27px;
+  width: 27.87px;
+}
+button.show-grid[data-show-grid="true"] {
+  opacity: 0.9;
 }
 
 button.reddit-share {
@@ -171,11 +186,6 @@ button.reddit-share {
   background-image: url("./assets/reddit-share-button.png");
   background-size: 85.33px 27px;
   width: 85.33px;
-}
-
-button.download:hover,
-button.reddit-share:hover {
-  opacity: 1;
 }
 
 button.download {

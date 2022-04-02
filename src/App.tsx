@@ -6,13 +6,41 @@ import colors from "./colors";
 import Canvas from "./components/Canvas";
 import { analytics } from "./firebase";
 
+function getInitialPixelDimensions() {
+  if (window.innerWidth < 600) {
+    return { width: 15, height: 15 };
+  }
+  return {
+    width: 25,
+    height: 25,
+  };
+}
+
 function App() {
   const canvasRef = useRef<Component<SketchProps, any, any>>(null);
   const errorTimeout = useRef<NodeJS.Timeout | null>(null);
   const mounted = useRef<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [colorIndex, setColorIndex] = useState(0);
+  const [showGrid, setShowGrid] = useState(true);
+  const [pixelDimensions, setPixelDimensions] = useState<{
+    width: number;
+    height: number;
+  }>(getInitialPixelDimensions);
   const color = useMemo(() => colors[colorIndex], [colorIndex]);
+
+  useLayoutEffect(() => {
+    function preventBehavior(e: TouchEvent) {
+      e.preventDefault();
+    }
+
+    const options: AddEventListenerOptions = { passive: false };
+
+    document.addEventListener("touchmove", preventBehavior, options);
+    return () => {
+      document.removeEventListener("touchmove", preventBehavior, options);
+    };
+  }, []);
 
   // detect unmount of component
   useLayoutEffect(() => {
@@ -102,12 +130,21 @@ function App() {
             >
               Download Image
             </button>
+            <button
+              type="button"
+              className="show-grid"
+              onClick={() => setShowGrid((prev) => !prev)}
+              data-show-grid={showGrid}
+            >
+              {showGrid ? "Hide" : "Show"} Grid
+            </button>
           </div>
           <Canvas
             ref={canvasRef}
+            showGrid={showGrid}
             color={color}
-            pixelWidth={25}
-            pixelHeight={25}
+            pixelWidth={pixelDimensions.width}
+            pixelHeight={pixelDimensions.height}
           />
         </div>
       </div>
