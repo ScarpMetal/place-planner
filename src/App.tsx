@@ -24,8 +24,8 @@ function App() {
   const [colorIndex, setColorIndex] = useState(0);
   const [showGrid, setShowGrid] = useState(true);
   const [pixelDimensions, setPixelDimensions] = useState<{
-    width: number;
-    height: number;
+    width?: number;
+    height?: number;
   }>(getInitialPixelDimensions);
   const color = useMemo(() => colors[colorIndex], [colorIndex]);
 
@@ -85,7 +85,9 @@ function App() {
     link.href = dataURL;
     link.click();
 
-    logEvent(analytics, "downloaded_image_to_computer", { dataURL });
+    logEvent(analytics, "downloaded_image_to_computer", {
+      pixels: localStorage.getItem("pixels"),
+    });
   };
 
   // const handleShareToReddit = () => {
@@ -123,13 +125,44 @@ function App() {
             >
               Feedback
             </a>
-            <button
-              type="button"
-              className="download"
-              onClick={handleDownloadToComputer}
-            >
-              Download Image
-            </button>
+
+            <div className="dimensions">
+              <input
+                inputMode="numeric"
+                type="number"
+                onChange={(e) => {
+                  setPixelDimensions((prev) => ({
+                    ...prev,
+                    width: e.target.valueAsNumber,
+                  }));
+                }}
+                onClick={(e) => {
+                  if ("select" in e.target) {
+                    // @ts-ignore not recognizing select
+                    e.target.select();
+                  }
+                }}
+                value={pixelDimensions.width}
+              />{" "}
+              <span>x</span>{" "}
+              <input
+                inputMode="numeric"
+                type="number"
+                onChange={(e) => {
+                  setPixelDimensions((prev) => ({
+                    ...prev,
+                    height: e.target.valueAsNumber,
+                  }));
+                }}
+                onClick={(e) => {
+                  if ("select" in e.target) {
+                    // @ts-ignore not recognizing select
+                    e.target.select();
+                  }
+                }}
+                value={pixelDimensions.height}
+              />
+            </div>
             <button
               type="button"
               className="show-grid"
@@ -138,13 +171,20 @@ function App() {
             >
               {showGrid ? "Hide" : "Show"} Grid
             </button>
+            <button
+              type="button"
+              className="download"
+              onClick={handleDownloadToComputer}
+            >
+              Download Image
+            </button>
           </div>
           <Canvas
             ref={canvasRef}
             showGrid={showGrid}
             color={color}
-            pixelWidth={pixelDimensions.width}
-            pixelHeight={pixelDimensions.height}
+            pixelWidth={pixelDimensions.width || 0}
+            pixelHeight={pixelDimensions.height || 0}
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
 import Sketch, { SketchProps } from "react-p5";
 import p5Types from "p5";
 import { Color } from "../types";
-import { Component, forwardRef, LegacyRef } from "react";
+import { Component, forwardRef, Ref, useLayoutEffect } from "react";
 import colors from "../colors";
 import { analytics } from "../firebase";
 import { logEvent } from "firebase/analytics";
@@ -12,6 +12,12 @@ const pixels: { [key: string]: Color } = JSON.parse(
 const MAX_PIXEL_SIZE = 30;
 let pixelSize = MAX_PIXEL_SIZE;
 let hoverPixelKey: string | null = null;
+
+function updatePixelSize(p5: p5Types, pixelWidth: number, pixelHeight: number) {
+  const possiblePixelSize1 = p5.floor((p5.windowWidth - 20) / pixelWidth);
+  const possiblePixelSize2 = p5.floor((p5.windowHeight - 170) / pixelHeight);
+  pixelSize = Math.min(possiblePixelSize1, possiblePixelSize2, MAX_PIXEL_SIZE);
+}
 
 function Canvas(
   {
@@ -27,20 +33,19 @@ function Canvas(
     pixelWidth: number;
     pixelHeight: number;
   },
-  ref: LegacyRef<Component<SketchProps, any, any>>
+  ref: Ref<Component<SketchProps, any, any>>
 ) {
-  function updatePixelSize(p5: p5Types) {
-    const possiblePixelSize1 = p5.floor((p5.windowWidth - 20) / pixelWidth);
-    const possiblePixelSize2 = p5.floor((p5.windowHeight - 170) / pixelHeight);
-    pixelSize = Math.min(
-      possiblePixelSize1,
-      possiblePixelSize2,
-      MAX_PIXEL_SIZE
-    );
-  }
+  useLayoutEffect(() => {
+    // @ts-ignore
+    const p5: p5Types | undefined = ref.current?.sketch;
+    if (p5) {
+      updatePixelSize(p5, pixelWidth, pixelHeight);
+      p5.resizeCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize);
+    }
+  }, [pixelHeight, pixelWidth, ref]);
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
-    updatePixelSize(p5);
+    updatePixelSize(p5, pixelWidth, pixelHeight);
     p5.createCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize).parent(
       canvasParentRef
     );
@@ -63,7 +68,7 @@ function Canvas(
 
   function drawNub(p5: p5Types, x: number, y: number, rot = 0) {
     const nubLen = p5.floor(pixelSize * 0.25);
-    const nubWidth = p5.floor(pixelHeight * 0.1);
+    const nubWidth = p5.floor(pixelSize * 0.1);
 
     p5.push();
     p5.translate(x, y);
@@ -138,7 +143,7 @@ function Canvas(
   };
 
   const windowResized = (p5: p5Types) => {
-    updatePixelSize(p5);
+    updatePixelSize(p5, pixelWidth, pixelHeight);
     p5.resizeCanvas(pixelWidth * pixelSize, pixelHeight * pixelSize);
   };
 
