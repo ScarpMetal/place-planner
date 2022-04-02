@@ -6,10 +6,10 @@ import colors from "../colors";
 import { analytics } from "../firebase";
 import { logEvent } from "firebase/analytics";
 
-const pixels: { [key: string]: Color } = JSON.parse(
+const MAX_PIXEL_SIZE = 30;
+let pixels: { [key: string]: Color } = JSON.parse(
   localStorage.getItem("pixels") || "{}"
 );
-const MAX_PIXEL_SIZE = 30;
 let pixelSize = MAX_PIXEL_SIZE;
 let hoverPixelKey: string | null = null;
 
@@ -21,12 +21,14 @@ function updatePixelSize(p5: p5Types, pixelWidth: number, pixelHeight: number) {
 
 function Canvas(
   {
+    paused,
     background = colors[12],
     color,
     showGrid,
     pixelWidth,
     pixelHeight,
   }: {
+    paused: boolean;
     background?: Color;
     color: Color;
     showGrid: boolean;
@@ -35,6 +37,15 @@ function Canvas(
   },
   ref: Ref<Component<SketchProps, any, any>>
 ) {
+  // Set initial pixels and hoverPixelKey when there is a new canvas
+  useLayoutEffect(() => {
+    pixels = JSON.parse(localStorage.getItem("pixels") || "{}") as {
+      [key: string]: Color;
+    };
+    hoverPixelKey = null;
+  }, []);
+
+  // set canvas size whenever pixelWidth and pixelHeight change
   useLayoutEffect(() => {
     // @ts-ignore
     const p5: p5Types | undefined = ref.current?.sketch;
@@ -51,9 +62,18 @@ function Canvas(
     );
   };
 
-  function screenCoordsToKey(screenX: number, screenY: number) {
+  function screenCoordsToKey(screenX: number, screenY: number): string | null {
     const pixelX = Math.floor(screenX / pixelSize);
     const pixelY = Math.floor(screenY / pixelSize);
+
+    if (
+      pixelX < 0 ||
+      pixelX > pixelWidth - 1 ||
+      pixelY < 0 ||
+      pixelY > pixelHeight - 1
+    ) {
+      return null;
+    }
     return `${pixelX},${pixelY}`;
   }
 
@@ -123,15 +143,20 @@ function Canvas(
   };
 
   function placePixel(p5: p5Types, screenX: number, screenY: number) {
-    hoverPixelKey = screenCoordsToKey(p5.mouseX, p5.mouseY);
-    const key = screenCoordsToKey(screenX, screenY);
-    pixels[key] = { ...color };
-    localStorage.setItem("pixels", JSON.stringify(pixels));
-    logEvent(analytics, "placed_pixel", {
-      position: key,
-      colorName: color.name,
-      colorHex: color.hex,
-    });
+    if (paused) return;
+
+    const pixelKey = screenCoordsToKey(screenX, screenY);
+    hoverPixelKey = pixelKey;
+
+    if (pixelKey) {
+      pixels[pixelKey] = { ...color };
+      localStorage.setItem("pixels", JSON.stringify(pixels));
+      logEvent(analytics, "placed_pixel", {
+        position: pixelKey,
+        colorName: color.name,
+        colorHex: color.hex,
+      });
+    }
   }
 
   const mouseMoved = (p5: p5Types) => {

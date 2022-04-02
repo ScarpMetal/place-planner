@@ -163,6 +163,8 @@ canvas {
   justify-content: flex-end;
   width: 100%;
   gap: 16px;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
 .options .dimensions input,
@@ -204,6 +206,13 @@ canvas {
 
 .options .dimensions span {
   opacity: 0.3;
+}
+
+button.clear-canvas {
+  background-image: url("./assets/clear-canvas-button.png");
+  background-size: 23.26px 27px;
+  width: 23.26px;
+  margin-right: auto;
 }
 
 button.show-grid {

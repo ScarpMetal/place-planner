@@ -5,6 +5,7 @@ import "./App.css";
 import colors from "./colors";
 import Canvas from "./components/Canvas";
 import { analytics } from "./firebase";
+import JSAlert from "js-alert";
 
 function getInitialPixelDimensions() {
   const localDimensions = JSON.parse(
@@ -30,12 +31,14 @@ function App() {
   const errorTimeout = useRef<NodeJS.Timeout | null>(null);
   const mounted = useRef<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [colorIndex, setColorIndex] = useState(0);
+  const [lastClear, setLastClear] = useState(new Date().toISOString());
   const [showGrid, setShowGrid] = useState(true);
   const [pixelDimensions, setPixelDimensions] = useState<{
     width?: number;
     height?: number;
   }>(getInitialPixelDimensions);
+  const [colorIndex, setColorIndex] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
   const color = useMemo(() => colors[colorIndex], [colorIndex]);
 
   // save dimensions to localstorage
@@ -72,9 +75,46 @@ function App() {
     errorTimeout.current = setTimeout(() => {
       if (mounted.current) {
         setError(null);
+        errorTimeout.current = null;
       }
     }, 5000);
   }, [error]);
+
+  const clearCanvas = () => {
+    localStorage.clear();
+    setPixelDimensions(getInitialPixelDimensions());
+    setShowGrid(true);
+    setError(null);
+    if (errorTimeout.current) {
+      clearTimeout(errorTimeout.current);
+      errorTimeout.current = null;
+    }
+    setLastClear(new Date().toISOString());
+    logEvent(analytics, "cleared-canvas");
+  };
+
+  const initiateClearCanvas = () => {
+    setModalOpen(true);
+
+    const handleTouchUp = () => {
+      if (mounted.current) {
+        setModalOpen(false);
+      }
+      document.removeEventListener("mouseup", handleTouchUp);
+    };
+
+    document.addEventListener("mouseup", handleTouchUp);
+
+    // Show a confirm alert
+    JSAlert.confirm("Are you sure you want to clear the canvas?").then(
+      function (confirmClear: boolean) {
+        // if pressed no or component unmounted
+        if (!confirmClear || !mounted.current) return;
+
+        clearCanvas();
+      }
+    );
+  };
 
   const getCanvasDataURL = () => {
     // @ts-ignore p5 sketch did not type this
@@ -122,13 +162,13 @@ function App() {
       <div className="canvas-container">
         <div className="canvas-content-container">
           <div className="options">
-            {/* <button
+            <button
               type="button"
-              className="reddit-share"
-              onClick={handleShareToReddit}
+              className="clear-canvas"
+              onClick={initiateClearCanvas}
             >
-              Reddit Share
-            </button> */}
+              Clear Canvas
+            </button>
 
             <div className="dimensions">
               <input
@@ -182,9 +222,18 @@ function App() {
             >
               Download Image
             </button>
+            {/* <button
+              type="button"
+              className="reddit-share"
+              onClick={handleShareToReddit}
+            >
+              Reddit Share
+            </button> */}
           </div>
           <Canvas
+            key={lastClear}
             ref={canvasRef}
+            paused={modalOpen}
             showGrid={showGrid}
             color={color}
             pixelWidth={pixelDimensions.width || 0}
