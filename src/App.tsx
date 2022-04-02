@@ -36,8 +36,9 @@ function App() {
     width?: number;
     height?: number;
   }>(getInitialPixelDimensions);
-  const [colorIndex, setColorIndex] = useState(0);
+
   const [modalOpen, setModalOpen] = useState(false);
+  const [colorIndex, setColorIndex] = useState(15);
   const color = useMemo(() => colors[colorIndex], [colorIndex]);
 
   // save dimensions to localstorage
