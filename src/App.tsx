@@ -1,9 +1,8 @@
 import { logEvent } from "firebase/analytics";
-import { Component, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { SketchProps } from "react-p5/@types";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import colors from "./colors";
-import Canvas from "./components/Canvas";
+import Canvas, { CanvasRefProps } from "./components/Canvas";
 import { analytics } from "./firebase";
 import JSAlert from "js-alert";
 
@@ -11,6 +10,7 @@ function getInitialPixelDimensions() {
   const localDimensions = JSON.parse(
     localStorage.getItem("pixelDimensions") || "{}"
   ) as { width?: number; height?: number };
+
   if (
     typeof localDimensions.width === "number" &&
     typeof localDimensions.height === "number"
@@ -27,11 +27,10 @@ function getInitialPixelDimensions() {
 }
 
 function App() {
-  const canvasRef = useRef<Component<SketchProps, any, any>>(null);
+  const canvasRef = useRef<CanvasRefProps | null>(null);
   const errorTimeout = useRef<NodeJS.Timeout | null>(null);
   const mounted = useRef<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastClear, setLastClear] = useState(new Date().toISOString());
   const [showGrid, setShowGrid] = useState(true);
   const [pixelDimensions, setPixelDimensions] = useState<{
     width?: number;
@@ -89,7 +88,8 @@ function App() {
       clearTimeout(errorTimeout.current);
       errorTimeout.current = null;
     }
-    setLastClear(new Date().toISOString());
+    canvasRef.current?.clearCanvas();
+
     logEvent(analytics, "cleared_canvas");
   };
 
@@ -117,12 +117,14 @@ function App() {
 
   const getCanvasDataURL = () => {
     // @ts-ignore p5 sketch did not type this
-    if (!canvasRef.current?.sketch?.canvas?.toDataURL) {
+    const sketch = canvasRef.current?.getSketch();
+    // @ts-ignore
+    if (!sketch?.canvas?.toDataURL) {
       return null;
     }
 
     // @ts-ignore p5 sketch did not type this
-    return canvasRef.current.sketch.canvas.toDataURL();
+    return sketch.canvas.toDataURL();
   };
 
   const handleDownloadToComputer = () => {
@@ -230,13 +232,11 @@ function App() {
             </button> */}
           </div>
           <Canvas
-            lastClear={lastClear}
             ref={canvasRef}
-            paused={modalOpen}
-            showGrid={showGrid}
             color={color}
-            pixelWidth={pixelDimensions.width || 0}
-            pixelHeight={pixelDimensions.height || 0}
+            paused={modalOpen}
+            pixelDimensions={pixelDimensions}
+            showGrid={showGrid}
           />
         </div>
       </div>
