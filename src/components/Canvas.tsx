@@ -10,7 +10,7 @@ import { P5Instance, ReactP5Wrapper } from "react-p5-wrapper";
  *   Component Controlled Data
  * =============================
  */
-let background: Color = colors[12];
+let background: Color = colors[27];
 let color: Color = colors[0];
 let paused: boolean = false;
 let pixelHeight: number = 25;
@@ -219,7 +219,7 @@ export type CanvasRef = Ref<CanvasRefProps>;
 
 function Canvas(
   {
-    background = colors[12],
+    background = colors[27],
     color,
     paused,
     pixelDimensions,

@@ -94,11 +94,17 @@ canvas {
 
 .colors {
   display: grid;
-  grid-template-columns: repeat(16, 1fr);
+  grid-template-columns: repeat(32, 1fr);
   gap: 4px;
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 800px) {
+  .colors {
+    grid-template-columns: repeat(16, 1fr);
+  }
+}
+
+@media screen and (max-width: 460px) {
   .colors {
     grid-template-columns: repeat(8, 1fr);
   }
